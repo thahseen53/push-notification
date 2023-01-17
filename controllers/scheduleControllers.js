@@ -15,23 +15,28 @@ webpush.setVapidDetails("mailto:test@test.com", publicKey, privateKey);
 const createSchedule = async (req, res) => {
   try {
     const { schedule, subscription } = req.body;
+
+    await RedisClient.set("schedule", JSON.stringify(schedule));
+    await RedisClient.set("subscriberClient", JSON.stringify(subscription));
+
     console.log(schedule);
     console.log(subscription);
 
-    const payload = JSON.stringify({
-      title: "Hello World",
-      body: "This is your first push notification",
-    });
-
-    webpush.sendNotification(subscription, payload).catch(console.log);
-    await RedisClient.set("schedule", JSON.stringify(schedule));
-    // await RedisClient.set("subscription", JSON.stringify(subscription));
+    webpush
+      .sendNotification(
+        subscription,
+        JSON.stringify({
+          title: "Planner App",
+          body: "This is your first push notification",
+        })
+      )
+      .catch(console.log);
 
     res.status(200).json({
       success: true,
       data: {
         message: "Schedule created successfully",
-        /*createdSchedule: schedule,*/
+        createdSchedule: schedule,
       },
     });
   } catch (err) {
